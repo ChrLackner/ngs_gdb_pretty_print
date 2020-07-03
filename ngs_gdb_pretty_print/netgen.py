@@ -43,7 +43,7 @@ class PointIndexPrinter(BasePrinter):
 
 class SurfaceElementIndexPrinter(BasePrinter):
     def info(self):
-        return int(self.val["i"])
+        return "INVALID" if int(self.val["i"]) == -1 else str(self.val["i"])
 
 class NgElementPrinter(BasePrinter):
     def children(self):

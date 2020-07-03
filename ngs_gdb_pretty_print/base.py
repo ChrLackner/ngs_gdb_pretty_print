@@ -31,7 +31,7 @@ class BasePrinter:
         return "\n" + name, self.val[name]
 
     def arrayprint(self, name):
-        from .ngcore import ArrayPrinter
+        from .core import ArrayPrinter
         return "\n" + name, ArrayPrinter(self.val[name]).to_string()
 
 def process_kids(state, PF):

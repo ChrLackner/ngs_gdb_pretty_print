@@ -3,9 +3,9 @@ import re
 import gdb
 
 from .base import *
-from .ngcore import *
+from .core import *
 from .netgen import *
-from .ngcomp import *
+from .comp import *
 
 regexp_dict = {}
 pretty_printers_dict = {}

@@ -9,6 +9,8 @@ class ArrayPrinter(BasePrinter):
         if self.size > 0:
             def printval(val):
                 p = gdb.default_visualizer(val)
+                if p is None:
+                    return str(val)
                 if hasattr(p, "info"):
                     return p.info()
                 return p.to_string()
@@ -42,6 +44,3 @@ class FlagPrinter(BasePrinter):
             for n, d in val.children():
                 array = ArrayPrinter(d["_M_ptr"].dereference())
                 yield n, array.values
-
-
-
