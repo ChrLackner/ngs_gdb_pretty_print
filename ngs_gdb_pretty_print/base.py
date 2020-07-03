@@ -21,15 +21,17 @@ class BasePrinter:
         self.template_types = template_arguments
 
     def to_string(self):
-        return self.prefix.format(self.name) + ": " + self.info() #  + self.member_info()
-
-    def info(self):
-        return ""
+        if hasattr(self, "info"):
+            info = ": " + self.info()
+        else:
+            info = ""
+        return self.prefix.format(self.name) + info
 
     def memberprint(self, name):
         return "\n" + name, self.val[name]
 
     def arrayprint(self, name):
+        from .ngcore import ArrayPrinter
         return "\n" + name, ArrayPrinter(self.val[name]).to_string()
 
 def process_kids(state, PF):
@@ -107,3 +109,14 @@ class DummyPrinter:
         self.val = val
     def to_string(self):
         return str(self.val)
+
+class StdStringPrinter:
+    "Print a std::string"
+    def __init__(self, val):
+        self.val = val
+
+    def to_string(self):
+        return self.val['_M_dataplus']['_M_p']
+
+    def display_hint(self):
+        return 'string'

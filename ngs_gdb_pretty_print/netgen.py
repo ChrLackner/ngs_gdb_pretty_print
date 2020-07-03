@@ -26,7 +26,7 @@ class Element2dPrinter(BasePrinter):
         return "{} [{}]".format(typ, " - ".join([PointIndexPrinter(self.val["pnum"][i]).info() for i in range(int(self.val["np"]))]))
 
     def children(self):
-        for val in ("typ", "pnum", "is_curved", "refflag", "next", "np"):
+        for val in ("index", "is_curved"):
             yield self.memberprint(val)
 
 class Element3dPrinter(BasePrinter):
@@ -41,7 +41,16 @@ class PointIndexPrinter(BasePrinter):
     def info(self):
         return "INVALID" if int(self.val["i"]) == 0 else str(self.val["i"])
 
+class SurfaceElementIndexPrinter(BasePrinter):
+    def info(self):
+        return int(self.val["i"])
+
 class NgElementPrinter(BasePrinter):
     def children(self):
         for val in ("type", "index", "mat", "points", "edges", "faces", "facets", "is_curved"):
             yield self.memberprint(val)
+
+class PointPrinter(BasePrinter):
+    def info(self):
+        size = int(self.template_types[0])
+        return "(" + ", ".join(str(self.val["x"][i]) for i in range(size)) + ")"
