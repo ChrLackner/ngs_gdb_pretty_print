@@ -25,6 +25,17 @@ class ArrayPrinter(BasePrinter):
 
     def info(self):
         return " size({})".format(self.size)
+register_printer(ArrayPrinter, 'ngcore::FlatArray<.*>',
+                 'ngcore::Array<.*>', 'ngcore::ArrayMem<.*>',
+                 'netgen::NgFlatArray<.*>','netgen::NgArray<.*>',
+                 "ngfem::IntegrationRule")
+
+class BitArrayPrinter(BasePrinter):
+    def children(self):
+        yield self.memberprint("size")
+        yield "data", "{}".format("".join(str(1 if (int(self.val["data"][i/8]) & 1<<i%8) else 0) for i in range(self.val["size"])))
+register_printer(BitArrayPrinter, "ngcore::BitArray")
+
 
 class SymbolTablePrinter(BasePrinter):
     def children(self):
@@ -32,6 +43,7 @@ class SymbolTablePrinter(BasePrinter):
         data = gdb.default_visualizer(self.val["data"]).children()
         for n, d in zip(names, data):
             yield "\n" + str(n[1]), d[1]
+register_printer(SymbolTablePrinter, "ngcore::SymbolTable<.*>")
 
 class FlagPrinter(BasePrinter):
     def children(self):
@@ -44,3 +56,4 @@ class FlagPrinter(BasePrinter):
             for n, d in val.children():
                 array = ArrayPrinter(d["_M_ptr"].dereference())
                 yield n, array.values
+register_printer(FlagPrinter, "ngcore::Flags")

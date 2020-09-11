@@ -1,16 +1,20 @@
 
-import gdb
+import gdb, re
+
+regexp_dict = {}
+pretty_printers_dict = {}
+
+def register_printer(printer, *names):
+    for name in names:
+        regexp_dict[name] = re.compile(name)
+        pretty_printers_dict[name] = printer
 
 class BasePrinter:
     def __init__(self, val, prefix="{}"):
         self.val = val
         self.prefix = prefix
-        self.name = str(self.val.type)
-        for expr in ("ngstd::", "ngcomp::", "ngbla::", "ngla::","ngfem::", "std::",
-                     "netgen::", "ngcore::"):
-            self.name = self.name.replace(expr, "")
-        self.name.replace("__cxx11::basic_string<char, char_traits<char>, allocator<char> >", "string")
         template_arguments = []
+        self.name = self.cleanupName(str(self.val.type))
         nargs = 0
         while True:
             try:
@@ -18,13 +22,30 @@ class BasePrinter:
             except RuntimeError:
                 break
             nargs += 1
+        if val.dynamic_type.unqualified() == val.type.unqualified():
+            self.dynamic_type = None
+        else:
+            self.dynamic_type = self.cleanupName(str(val.dynamic_type.unqualified()))
+
+        self.dynamic_type = str(val.dynamic_type)
         self.template_types = template_arguments
+
+    def cleanupName(self, name):
+        for expr in ("ngstd::", "ngcomp::", "ngbla::", "ngla::","ngfem::", "std::",
+                     "netgen::", "ngcore::"):
+            name = name.replace(expr, "")
+        name.replace("__cxx11::basic_string<char, char_traits<char>, allocator<char> >", "string")
+        return name
 
     def to_string(self):
         if hasattr(self, "info"):
-            info = ": " + self.info()
+            info = self.info()
         else:
             info = ""
+        if self.dynamic_type is not None:
+            info = "(" + self.dynamic_type + "): " + info
+        else:
+            info = ": " + info
         return self.prefix.format(self.name) + info
 
     def memberprint(self, name):
@@ -60,6 +81,7 @@ def printing(key, val):
     else:
         return key, val
 
+# not in use
 class DefaultPrinter(BasePrinter):
     def children(self):
         for key, val in process_kids(self.val, self.val):
@@ -109,14 +131,3 @@ class DummyPrinter:
         self.val = val
     def to_string(self):
         return str(self.val)
-
-class StdStringPrinter:
-    "Print a std::string"
-    def __init__(self, val):
-        self.val = val
-
-    def to_string(self):
-        return self.val['_M_dataplus']['_M_p']
-
-    def display_hint(self):
-        return 'string'
